@@ -12,6 +12,9 @@
 </head>
 
 <body>
+    <style type="">
+        .diamond{ transform: rotate(45deg); transform-origin: 50% 50%;translate(-50%,-50%); }
+    </style>
     <svg width="1000" height="1000">
         <defs>
             <marker id="markerArrow" markerWidth="13" markerHeight="13" refX="14" refY="6" orient="auto">
@@ -21,6 +24,8 @@
         <g></g>
     </svg>
     <script>
+    const rw = 30,
+        rh = 30;
     var nodes = [{
         "id": 1,
         "text": "start",
@@ -36,6 +41,8 @@
         "r": 30,
         "x": 200,
         "y": 100,
+        "rw": rw,
+        "rh": rh,
         "type": "rect"
     }, {
         "id": 3,
@@ -44,6 +51,8 @@
         "r": 15,
         "x": 350,
         "y": 100,
+        "rw": rw,
+        "rh": rh,
         "type": "diamond"
     }, {
         "id": 4,
@@ -52,6 +61,8 @@
         "r": 20,
         "x": 350,
         "y": 150,
+        "rw": rw,
+        "rh": rh,
         "type": "rect"
     }, {
         "id": 5,
@@ -60,6 +71,8 @@
         "r": 20,
         "x": 500,
         "y": 100,
+        "rw": rw,
+        "rh": rh,
         "type": "rect"
     }, {
         "id": 6,
@@ -68,6 +81,8 @@
         "r": 20,
         "x": 650,
         "y": 100,
+        "rw": rw,
+        "rh": rh,
         "type": "rect"
     }, {
         "id": 7,
@@ -101,7 +116,7 @@
     }, {
         "source": 4,
         "target": 8,
-        "polyLine":true
+        "polyLine": true
     }, {
         "source": 5,
         "target": 6
@@ -132,58 +147,47 @@
 
 
     var svg = d3.select("body").select("svg");
-    var polyLine = d3.line()
-        .x(function(d) {
-            console.log(d.x);
-            d.x
-        })
-        .y(function(d) { d.y })
-        .curve(d3.curveStepBefore);
     var links = svg.selectAll("path")
         .data(links)
         .enter().append("path")
-        .style("fill","none" )
+        .style("fill", "none")
         .attr("class", "link")
         .attr("d", function(d) {
-        	if(d.polyLine){
-        		// var x1 = d.source.x;
-          //   var y1 = d.source.y;
-          //   var x2 = d.target.x;
-          //   var y2 = d.target.y;
+            if (d.polyLine) {
+                // var x1 = d.source.x;
+                //   var y1 = d.source.y;
+                //   var x2 = d.target.x;
+                //   var y2 = d.target.y;
 
-          //   return "M" + x1 + "," + y1 + "L" + x1 + "," + y2+ "L" + x2 + "," + y2 + "L" + x2;
+                //   return "M" + x1 + "," + y1 + "L" + x1 + "," + y2+ "L" + x2 + "," + y2 + "L" + x2;
 
-		     return d3.line()
-			    .x(function(d) { return d.x })
-			    .y(function(d) { return d.y })
-			    .curve(d3.curveStepBefore)([d.source,d.target])
-        	}else{
+                return d3.line()
+                    .x(function(d) { return d.x })
+                    .y(function(d) { return d.y })
+                    .curve(d3.curveStepBefore)([d.source, d.target])
+            } else {
 
-            var x1 = d.source.x;
-            var y1 = d.source.y;
-            var x2 = d.target.x;
-            var y2 = d.target.y;
+                var x1 = d.source.x;
+                var y1 = d.source.y;
+                var x2 = d.target.x;
+                var y2 = d.target.y;
 
-            return "M" + x1 + " " + y1 + "L" + x2 + " " + y2;
-        	}
+                return "M" + x1 + " " + y1 + "L" + x2 + " " + y2;
+            }
         })
         .style("stroke", "blue")
         .style("storke-width", "1px");
-    // var links = svg.append("path")
-    //     .data(nodes)
-    //     .style("fill", "none")
-    //     .style("stroke", "black")
-    //     .style("stroke-width", "4px")
-    //     .attr("d", d3.line()
-    //         .x(function(d) {
-    //             d.x
-    //         })
-    //         .y(function(d) { d.y })
-    //         .curve(d3.curveStepBefore))
 
-    var nodes = svg.selectAll("circle")
+    var nodes = svg.selectAll(".node")
         .data(nodes)
-        .enter().append("circle")
+        .enter()
+        .append("g")
+        .attr("class", "node-group");
+
+
+    nodes
+        .filter(function(d) { return d.type === "circle"; })
+        .append("circle")
         .attr("class", "node")
         .attr("r", function(d) {
             return d.r
@@ -194,7 +198,38 @@
         .attr("cy", function(d) {
             return d.y;
         })
-        .style("fill", "red");
+        .style("fill", "red")
+        .on("click", function(d,i){
+           alert("This is " +d.text)
+        });
+
+    var g = nodes
+        .filter(function(d) { return d.type === "diamond"; })
+        .append("rect")
+        .attr("class", "node diamond")
+        .attr("x", function(d, i) { return d.x; })
+        .attr("y", function(d, i) { return d.y; })
+        .attr("width", function(d, i) { return d.rw; })
+        .attr("height", function(d, i) { return d.rh; })
+        .style("fill", "blue")
+        .attr("transform", "translate(-15,-15) rotate(45 50% 50%)")
+        .on("click", function(d,i){
+            alert("This is " +d.text)
+        });
+
+    nodes
+        .filter(function(d) { return d.type === "rect"; })
+        .append("rect")
+        .attr("class", "node")
+        .attr("x", function(d, i) { return d.x; })
+        .attr("y", function(d, i) { return d.y; })
+        .attr("width", function(d, i) { return d.rw; })
+        .attr("height", function(d, i) { return d.rh; })
+        .attr("transform", function(d, i) { return "translate(-" + d.rw / 2 + ",-" + d.rh / 2 + ")"; })
+        .style("fill", "red")
+        .on("click", function(d,i){
+             alert("This is " +d.text)
+        });
 
     nodes.call(d3.drag()
         .on("start", dragstart)
@@ -219,12 +254,27 @@
             }
         });
         link.attr("d", function(d) {
-            var x1 = d.source.x;
-            var y1 = d.source.y;
-            var x2 = d.target.x;
-            var y2 = d.target.y;
+            if (d.polyLine) {
+                // var x1 = d.source.x;
+                //   var y1 = d.source.y;
+                //   var x2 = d.target.x;
+                //   var y2 = d.target.y;
 
-            return "M" + x1 + " " + y1 + "L" + x2 + " " + y2;
+                //   return "M" + x1 + "," + y1 + "L" + x1 + "," + y2+ "L" + x2 + "," + y2 + "L" + x2;
+
+                return d3.line()
+                    .x(function(d) { return d.x })
+                    .y(function(d) { return d.y })
+                    .curve(d3.curveStepBefore)([d.source, d.target])
+            } else {
+
+                var x1 = d.source.x;
+                var y1 = d.source.y;
+                var x2 = d.target.x;
+                var y2 = d.target.y;
+
+                return "M" + x1 + " " + y1 + "L" + x2 + " " + y2;
+            }
         });
     }
 
