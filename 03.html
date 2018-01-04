@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+    </head>
+    <body>
+        <table width="100%">
+            <tr><td>1</td><td>A</td></tr>
+            <tr><td>2</td><td>B</td></tr>
+            <tr><td>3</td><td>C</td></tr>
+            <tr><td>4</td><td>D</td></tr>
+        </table>
+
+        <script>
+            d3.selectAll("tr")
+                .style("background-color", 
+                    (d, i) => i % 2 ? "lightblue" : "lightgreen");
+        </script>        
+    </body>
+</html>

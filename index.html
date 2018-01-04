@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.12/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+    <style>
+        svg {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <tr>
+            <td>
+                <input type="text" value="Open" />
+            </td>
+            <td>
+                <input type="text" value="In Progress" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input type="text" value="In Progress" />
+            </td>
+            <td>
+                <input type="text" value="Completed" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input type="text" value="Open" />
+            </td>
+            <td>
+                <input type="text" value="Completed" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input type="text" value="In Progress" />
+            </td>
+            <td>
+                <input type="text" value="Cancelled" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input type="text" value="" />
+            </td>
+            <td>
+                <input type="text" value="" />
+            </td>
+        </tr>
+    </table>
+    <button onclick="draw()">Update Preview</button>
+    <svg>
+        <defs>
+            <marker id="markerArrow" markerWidth="13" markerHeight="13" refX="14" refY="6" orient="auto">
+                <path d="M2,2 L2,11 L10,6 L2,2" />
+            </marker>
+        </defs>
+        <g></g>
+    </svg>
+
+    <script>
+        const width = 500, height = 400;
+        let nodes,
+            links;
+        let force;
+
+        function getNodes() {
+            let status = [...document.querySelectorAll("input")]
+                .map(input => input.value)
+                .filter(value => value);
+            let newNodes = _.uniq(status)
+                .map(status => ({ status: status }));
+            newNodes.forEach(node => {
+                _.defaultsDeep(node, _.find(nodes, node));
+            });
+            return newNodes;
+        }
+        function getLinks(nodes) {
+            return [...document.querySelectorAll("tr")]
+                .map(tr => [...tr.querySelectorAll("input")].map(input => input.value))
+                .filter(e => e[0] && e[1])
+                .map(e => ({
+                    source: _.findIndex(nodes, { status: e[0] }),
+                    target: _.findIndex(nodes, { status: e[1] })
+                }));
+        }
+        function init() {
+            if (!force) {
+                d3.select("svg")
+                    .attr("width", width)
+                    .attr("height", height);
+
+                force = d3.layout.force()
+                    .size([width, height])
+                    .linkDistance(100);
+            }
+        }
+        function draw() {
+            init();
+
+            nodes = getNodes();
+            links = getLinks(nodes);
+
+            let svg = d3.select("svg").select("g");
+
+            let lines = svg.selectAll("line").data(links);
+            lines.enter().append("line");
+            lines.style("stroke", "black").attr("marker-end", "url(#markerArrow)");
+            lines.exit().remove();
+
+            let circles = svg.selectAll("circle").data(nodes);
+            circles.enter().append("circle").call(force.drag);
+            circles.attr("r", 5);
+            circles.exit().remove();
+
+            let texts = svg.selectAll("text").data(nodes);
+            texts.enter().append("text");
+            texts.text(d => d.status);
+            texts.exit().remove();
+
+            force
+                .nodes(nodes)
+                .links(links);
+
+            force.on("tick", () => {
+                lines
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                circles
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+                circles.each(collide(0.5));
+
+                texts
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
+            });
+
+            force.start();
+        }
+        function collide(alpha) {
+            var padding = 1, // separation between circles
+                radius = 80;
+            var quadtree = d3.geom.quadtree(nodes);
+            return function (d) {
+                var rb = 2 * radius + padding,
+                    nx1 = d.x - rb,
+                    nx2 = d.x + rb,
+                    ny1 = d.y - rb,
+                    ny2 = d.y + rb;
+                quadtree.visit(function (quad, x1, y1, x2, y2) {
+                    if (quad.point && (quad.point !== d)) {
+                        var x = d.x - quad.point.x,
+                            y = d.y - quad.point.y,
+                            l = Math.sqrt(x * x + y * y);
+                        if (l < rb) {
+                            l = (l - rb) / l * alpha;
+                            d.x -= x *= l;
+                            d.y -= y *= l;
+                            quad.point.x += x;
+                            quad.point.y += y;
+                        }
+                    }
+                    return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+                });
+            };
+        }
+
+        draw();
+    </script>
+</body>
+
+</html>

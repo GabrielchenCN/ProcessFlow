@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <style>
+            div {
+                background-color: lightblue;
+                height: 50px;
+                border: 2px solid white;
+            }
+        </style>
+    </head>
+    <body>
+        <table>
+            <tr><td><input type="text" value="1" /></td></tr>
+            <tr><td><input type="text" value="2" /></td></tr>
+            <tr><td><input type="text" value="3" /></td></tr>
+            <tr><td><input type="text" value="5" /></td></tr>
+            <tr><td><input type="text" value="" /></td></tr>
+            <tr><td><input type="text" value="" /></td></tr>
+            <tr><td><input type="text" value="" /></td></tr>
+        </table>
+        <button onclick="draw()">Click Me!</button>
+
+        <script>
+            function getData() {
+                return d3.selectAll("input")
+                        .nodes()
+                        .map(input => input.value)
+                        .filter(value => value);
+            }
+            function draw() {
+                d3.selectAll("div")
+                    .data(getData())
+                    .enter()
+                    .append("div")
+                    .style("width", d => d * 100 + "px");
+            }
+            draw();
+        </script>        
+    </body>
+</html>

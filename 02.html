@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+    </head>
+    <body>
+        <h1>Hello D3.js!</h1>
+        <button onclick="draw()">Click Me!</button>
+
+        <script>
+            function getRandomColor() {
+                return d3.schemeCategory20[Math.round(Math.random() * 20)];
+            }
+            function draw() {
+                d3.select("h1")
+                    .style("color", getRandomColor);
+            }
+        </script>        
+    </body>
+</html>
