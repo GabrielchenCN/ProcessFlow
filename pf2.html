@@ -16,12 +16,6 @@
         /*.diamond{ transform: rotate(45deg); transform-origin: 50% 50%;translate(-50%,-50%); }*/
     </style>
     <svg width="1000" height="1000">
-        <defs>
-            <!--  <marker id="markerArrow" markerWidth="13" markerHeight="13" refX="50" refY="6" orient="auto">
-                <path d="M2,2 L2,11 L10,6 L2,2" />
-            </marker> -->
-        </defs>
-        <g></g>
     </svg>
     <script>
     const rw = 100,
@@ -159,7 +153,7 @@
         orient: "auto",
     }];
 
-    
+
 
     // 数据转换
     links.some(function(v, i) {
@@ -186,19 +180,19 @@
     console.log(links);
     // console.info(d3.select("body").select("svg"));
     function _drawMarker(data) {
-        var defs = svg = d3.select("svg").append('svg:defs');
+        // var defs = svg = d3.select("svg").append('svg:defs');
 
-        var marker = defs.selectAll('marker')
+        var marker = d3.select("svg").selectAll('marker')
             .data(data)
-            
-         marker.exit().remove()
-            marker.enter().append('svg:marker')
-            .attr('id', function(d) { return 'marker_' + d.marker.type })
+
+        marker.exit().remove()
+        marker.enter().append('svg:marker')
+            .attr('id', function(d) { return 'marker_' + d.marker.type + "_" + d.index })
             .attr('markerHeight', function(d) { return d.marker.markerHeight })
             .attr('markerWidth', function(d) { return d.marker.markerWidth })
             .attr('markerUnits', 'strokeWidth')
             .attr('orient', function(d) { return d.marker.orient })
-            .attr('refX', function(d) { return d.marker.refX? d.marker.refX: _calculateArrowOffset(d.source, d.target,d.target.rw,d.target.rh)})
+            .attr('refX', function(d) { return d.marker.refX ? d.marker.refX : _calculateArrowOffset(d.source, d.target, d.target.rw, d.target.rh) })
             .attr('refY', function(d) { return d.marker.refY })
             .attr('viewBox', function(d) { return d.marker.viewbox })
             .append('svg:path')
@@ -207,9 +201,14 @@
 
     }
 
+    function _drawText(data) {
+
+    }
+
     function draw(links, nodesData) {
-        //
+        //update marker
         _drawMarker(links);
+
         //生成links
         var svg = d3.select("body").select("svg");
         var linksPath = svg.selectAll(".link")
@@ -247,13 +246,15 @@
             })
             .style("stroke", "blue")
             .style("storke-width", "1px")
-            .attr("marker-end", function(d) { return "url(#marker_" + d.target.type + ")" });;
+            .attr("marker-end", function(d) { return "url(#marker_" + d.target.type + "_" + d.index + ")" });;
+
 
         var nodes = svg.selectAll(".node")
             .data(nodesData)
             .enter()
             .append("g")
             .attr("class", "node-group");
+
 
 
         nodes
@@ -269,12 +270,12 @@
             .attr("cy", function(d) {
                 return d.y;
             })
+            .style("stroke", "black")
+            .style("stroke-width", "2px")
             .style("fill", function(d) {
                 return d.color ? d.color : "red";
             })
-            .on("click", function(d, i) {
-                alert("This is " + d.text)
-            });
+            .on("click", handlerClick);
 
         nodes
             .filter(function(d) { return d.type === "diamond"; })
@@ -285,10 +286,11 @@
             .attr("width", function(d, i) { return d.rw; })
             .attr("height", function(d, i) { return d.rh; })
             .style("fill", "blue")
+            // .style("fill", "none")
+            .style("stroke", "black")
+            .style("stroke-width", "2px")
             .attr("transform", function(d, i) { return "translate(-" + d.rw / 2 + ",-" + d.rh / 2 + ")"; })
-            .on("click", function(d, i) {
-                alert("This is " + d.text)
-            });
+            .on("click", handlerClick);
 
         nodes
             .filter(function(d) { return d.type === "rect"; })
@@ -302,8 +304,28 @@
             .style("fill", function(d) {
                 return d.color ? d.color : "grey";
             })
-            .on("click", function(d, i) {
-                alert("This is " + d.text)
+            .style("stroke", "black")
+            .style("stroke-width", "2px")
+            .on("click", handlerClick);
+
+
+        nodes.append("text").attr("x", function(d) {
+                return d.x;
+            })
+            .attr("y", function(d) {
+                return d.y;
+            })
+            .attr("text-anchor", "middle")
+            .attr("lengthAdjust", "spacingAndGlyphs")
+            .attr("textLength", function(d) {
+                return d.r ? d.r : d.rw;
+            })
+            .attr("class", "text")
+            .style("fill", function(d) {
+                return "white";
+            })
+            .text(function(d) {
+                return d.text
             });
 
         nodes.call(d3.drag()
@@ -311,8 +333,15 @@
             .on("drag", dragged)
             .on("end", dragend));
 
+
+
     }
 
+    function handlerClick(d, i) {
+        d3.selectAll(".node").style("stroke", "black")
+        d3.select(this).style("stroke", "yellow")
+        alert("This is " + d.text)
+    }
 
     function dragstart() {
 
@@ -343,12 +372,13 @@
         //  var node = d3.select(this);
         // node.attr("cx", d.x)
         //     .attr("cy", d.y);
-        _drawMarker(links);
-        var node = d3.selectAll(".node").filter(function(v, i) {
-            if (v.id == d.id) {
+
+        var nodeGroup = d3.selectAll(".node-group").filter(function(v, i) {
+            if (v.id === d.id) {
                 return true;
             }
         });
+        var node = nodeGroup.select(".node");
         if (node.data()[0].type !== "circle") {
             node.attr("x", function(d, i) { return d.x; })
                 .attr("y", function(d, i) { return d.y; })
@@ -380,32 +410,56 @@
                 return "M" + x1 + " " + y1 + "L" + x2 + " " + y2;
             }
         });
+        //update marker
+        var marker = d3.selectAll("marker").filter(function(v, i) {
+            if (v.target.id === d.id||v.source.id === d.id) {
+                return true;
+            }
+        });
+        marker.attr('refX', function(d) { return d.marker.refX ? d.marker.refX : _calculateArrowOffset(d.source, d.target, d.target.rw, d.target.rh) })
+            .attr('refY', function(d) { return d.marker.refY })
+
+        //update text
+        var text = d3.selectAll(".text").filter(function(v, i) {
+            if (v.id === d.id) {
+                return true;
+            }
+        });
+        text.attr("x", function(d) {
+                return d.x;
+            })
+            .attr("y", function(d) {
+                return d.y;
+            })
     }
 
     function dragend() {
 
     }
 
-    function _calculateArrowOffset(oSourcePoint, oTargetPoint,w,h) {
+    function _calculateArrowOffset(oSourcePoint, oTargetPoint, w, h) {
         var iCellWidth = w,
             iCellHeight = h;
 
         if (oTargetPoint.x === oSourcePoint.x) {
-            return iCellHeight / 2;
+            console.log("same x")
+            return (iCellHeight / 2) + 5;
         } else if (oTargetPoint.y === oSourcePoint.y) {
-            return iCellWidth / 2;
+            console.log("same y")
+            return (iCellWidth / 2) + 5;
         } else {
             var fPointDistance = this._calculatePointDistance(oSourcePoint, oTargetPoint);
 
             var fCellSlope = iCellHeight / iCellWidth;
             var fLinkSlope = Math.abs((oTargetPoint.y - oSourcePoint.y) / (oTargetPoint.x - oSourcePoint.x));
             if (fLinkSlope < fCellSlope) {
-                return iCellWidth * fPointDistance / (Math.abs(oSourcePoint.x - oTargetPoint.x) * 2);
+                return (iCellWidth * fPointDistance / (Math.abs(oSourcePoint.x - oTargetPoint.x) * 2)) + 5;
             } else {
-                return iCellHeight * fPointDistance / (Math.abs(oSourcePoint.y - oTargetPoint.y) * 2);
+                return (iCellHeight * fPointDistance / (Math.abs(oSourcePoint.y - oTargetPoint.y) * 2)) + 5;
             }
         }
     };
+
     function _calculatePointDistance(oPoint1, oPoint2) {
         var dx = oPoint1.x - oPoint2.x,
             dy = oPoint1.y - oPoint2.y;
