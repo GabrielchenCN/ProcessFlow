@@ -15,8 +15,8 @@
     <style type="">
         /*.diamond{ transform: rotate(45deg); transform-origin: 50% 50%;translate(-50%,-50%); }*/
     </style>
-    <svg width="1000" height="1000">
-    </svg>
+    <!--  <svg width="1000" height="1000">
+    </svg> -->
     <script>
     const rw = 100,
         rh = 30,
@@ -204,13 +204,40 @@
     function _drawText(data) {
 
     }
+    //zoom
+
+
+    function zoomed() {
+        d3.select(".container")
+        // .attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")")
+        .attr("transform", d3.event.transform);
+    }
 
     function draw(links, nodesData) {
+        //zoom
+        const zoom = d3.zoom()
+            .scaleExtent([0.5, 2])
+            // .translateExtent([
+            //     [-100, -100],
+            //     [1000 + 90, 1000 + 100]
+            // ])
+            .on("zoom", zoomed);
+        //生成 svg
+        var svg = d3.select("body")
+            .append("svg")
+            .attr("width", 1000)
+            .attr("height", 1000)
+            .append("g")
+            .attr("class", "container")
+            // .attr("transform", "translate(" + margin.left + "," + margin.right + ")")
+            .call(zoom);
+
         //update marker
         _drawMarker(links);
 
         //生成links
-        var svg = d3.select("body").select("svg");
+        var svg = d3.select("body").select("svg").select("g");
+
         var linksPath = svg.selectAll(".link")
             .data(links)
             //operate on new elements only
@@ -412,7 +439,7 @@
         });
         //update marker
         var marker = d3.selectAll("marker").filter(function(v, i) {
-            if (v.target.id === d.id||v.source.id === d.id) {
+            if (v.target.id === d.id || v.source.id === d.id) {
                 return true;
             }
         });
@@ -465,6 +492,9 @@
             dy = oPoint1.y - oPoint2.y;
         return Math.sqrt(dx * dx + dy * dy);
     };
+
+
+
     draw(links, nodesData);
     </script>
 </body>
