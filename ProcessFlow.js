@@ -164,17 +164,12 @@ class ProcessFlow {
                 return d.y;
             })
             .attr("text-anchor", "middle")
-            // .attr("lengthAdjust", "spacingAndGlyphs")
             .attr("textLength", function(d) {
                 return d.r ? d.r * 2 : d.rw;
             })
             .attr("class", "text")
             .attr("fill", d=>d.colorFont ? d.colorFont : "#939392")
             .attr("alignment-baseline", "middle")
-     
-            // .text(function(d) {
-            //     return d.text
-            // });
             .text(d => _.truncate(d.text, { length: 20 }));
         oNode.filter(function(d) { return d.type === "circle"; }).append("text").attr("x", function(d) {
                 return d.x;
@@ -183,17 +178,12 @@ class ProcessFlow {
                 return d.y;
             })
             .attr("text-anchor", "middle")
-            // .attr("lengthAdjust", "spacingAndGlyphs")
             .attr("textLength", function(d) {
                 return d.r ? d.r * 2 : d.rw;
             })
             .attr("fill", d=>d.colorFont ? d.colorFont : "red")
             .attr("class", "text")
             .attr("alignment-baseline", "middle")
-       
-            // .text(function(d) {
-            //     return d.text
-            // });
             .text(d => _.truncate(d.text, { length: 10 }));
 
         return oNode;
@@ -202,11 +192,19 @@ class ProcessFlow {
     handlerClick(d, i) {
         // d3.selectAll(".node").style("stroke", "black")
         //select the second child of selected g  .
-       //  let selectBefore = d3.selectAll(".node[select]");
-       //  let selectedNow = d3.select(this).select(":nth-child(2)");
-       //  selectBefore.style("stroke",selectBefore.attr("select"));
+        let selectBefore = d3.selectAll(".selected");
+        if(!selectBefore.empty()){
+        	
+        selectBefore.classed("selected",false);
+           //回退之前的stoke
+        selectBefore.style("stroke",selectBefore.attr("selected"));
+        }
 
-      	// selectedNow.attr("selected",selectedNow.style("stroke"));
+        let selectedNow = d3.select(this).select(":nth-child(2)");
+     
+        selectedNow.classed("selected",true);
+         //保存当前的stoke
+      	selectedNow.attr("selected",selectedNow.style("stroke"));
       	selectedNow.style("stroke","yellow")
         alert("This is " + d.text)
     }
